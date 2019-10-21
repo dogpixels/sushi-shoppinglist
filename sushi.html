@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Sushi-Einkaufsliste</title>
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="author" content="draconigen@gmail.com">
+		<style>
+			:root {
+				--foreground: #fff;
+				--background: #313133;
+				--secondary-background: #3a3a3a;
+			}
+
+			* {box-sizing: border-box; color: var(--foreground)}
+			html {min-height: 101%; background-color: var(--background); font-family: monospace}
+			main {margin: 0 auto;}
+			@media(min-width: 840px) {main {max-width: 840px}}
+
+			input, button {font-family: monospace; background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); text-align: right}
+			input:hover, button:hover {background: rgba(255, 255, 255, 0.1)}
+			input {width: 5em; padding: 2px 8px}
+			#input h3 {margin: 0}
+			#input button:hover {cursor: pointer}
+			#input > * {display: inline-block; padding: 8px 24px; border: 1px solid rgba(255, 255, 255, 0.1)}
+			#output > * {display: inline-block; vertical-align: top; padding: 40px 20px; background-color: var(--foreground); color: var(--secondary-background)}
+
+			#output > * {border-top: 2px dashed var(--background); border-bottom: 2px dashed var(--background)}
+			#output > *:before {display: block; opacity: 0.6; font-weight: 600; letter-spacing: 0.5em; padding-bottom: 12px;}
+			#output-asiashop:before {content: "ASIA"}
+			#output-fishmarket:before {content: "FISCHMARKT"}
+			#output-grocerystore:before {content: "SUPERMARKT"}
+		</style>
+	</head>
+	<body>
+		<main>
+			<section>
+				<h1>Sushi-Einkaufsliste</h1>
+			</section>
+			<section id="input">
+				<div>
+					<h3>Personen:</h3>
+					<button type="button" id="input-persons-minus">-</button>
+					<input type="text" id="input-persons" />
+					<button type="button" id="input-persons-plus">+</button>
+				</div>
+				<!--
+				<div>
+					<h3>Wetter (°C):</h3>
+					<button type="button" id="input-weather-minus">-</button>
+					<input type="text" id="input-weather" />
+					<button type="button" id="input-weather-plus">+</button>
+				</div>
+				-->
+			</section>
+			<section id="output">
+				<pre id="output-asiashop"></pre>
+				<pre id="output-fishmarket"></pre>
+				<pre id="output-grocerystore"></pre>
+			</section>
+
+			<section>
+				<h3>Auf 250g Reis:</h3>
+				<ul>
+					<li>3 EL Reisessig</li>
+					<li>1 EL Mirin</li>
+					<li>2 TL Zucker (od. 1 EL ohne Mirin)</li>
+					<li>1 TL Salz</li>
+				</ul>
+			</section>
+		</main>
+
+		<script>
+			setTimeout(() => {
+				initialize();
+			}, 100);
+
+
+			async function initialize() {
+				let persons = document.getElementById('input-persons');
+				// let weather = document.getElementById('input-weather');
+				let personsMinus = document.getElementById('input-persons-minus');
+				let personsPlus = document.getElementById('input-persons-plus');
+				let weatherMinus = document.getElementById('input-weather-minus');
+				let weatherPlus = document.getElementById('input-weather-plus');
+
+				persons.value = "10";
+
+				/* weather forecast fetch
+				 * what to do in case of API changes / permanent errors:
+				 * (1) go to https://openweathermap.org/
+				 * (2) login with credentials (username: draconigen; see KeePass)
+				 * (3) check if API key is still valid: https://home.openweathermap.org/api_keys
+				 * (4) check for API changes https://openweathermap.org/forecast5
+				 * (5) check if the free account model still includes "Call 5 / 3 hour forecast API": https://openweathermap.org/price 
+				 */ 
+
+				/*
+				try {
+					let apiKey = 'INSERT-YOUR-API-KEY-HERE';
+					let zipCode = 'INSERT-YOUR-ZIP-CODE-HERE';
+					let countryCode = 'de'
+					let apiCall = 'https://api.openweathermap.org/data/2.5/forecast?zip=' + zipCode + ',' + countryCode + '&units=metric&APPID=' + apiKey;
+					
+					let response = await (await fetch(apiCall)).json();
+					console.info('[API] ' + apiCall, response);
+					weather.value = response.list[8].main.temp;
+				}
+				catch(e) {
+					alert("Failed to identify local weather conditions:\n\n" + e);				
+				}
+				*/
+
+				// add event change listener to input
+				persons.addEventListener('keyup', function(ev) {
+					calc();
+				})
+				/*
+				weather.addEventListener('keyup', function(ev) {
+					calc();
+				})
+				*/
+				personsMinus.addEventListener('click', function(ev) {
+					persons.value = Number.parseInt(persons.value) - 1;
+					calc();
+				})
+				personsPlus.addEventListener('click', function(ev) {
+					persons.value = Number.parseInt(persons.value) + 1;
+					calc();
+				})
+				/*
+				weatherMinus.addEventListener('click', function(ev) {
+					weather.value = Number.parseInt(weather.value) - 1;
+					calc();
+				})
+				weatherPlus.addEventListener('click', function(ev) {
+					weather.value = Number.parseInt(weather.value) + 1;
+					calc();
+				})
+				*/
+
+				calc();
+			}
+
+			function calc() {
+				let n = 0;
+				let asia = document.getElementById('output-asiashop');
+				let fish = document.getElementById('output-fishmarket');
+				let grocery = document.getElementById('output-grocerystore');
+
+				asia.innerHTML = "";
+				fish.innerHTML = "";
+				grocery.innerHTML = "";
+
+				let p = Number.parseInt(document.getElementById('input-persons').value);
+				// let w = getWeatherFactor();
+
+				// ASIA
+				n = Math.ceil(p * 2);
+				add(asia, n + ' stk Noriblätter');
+
+				n = (p / 5).toPrecision(2);
+				add(asia, n + 'kg Reis');
+
+				n = Math.ceil(p / 11);
+				add(asia, n + ' dos Wasabi');
+
+				n = Math.ceil(p / 100);
+				add(asia, n + ' pak Sesam');
+
+				n = Math.ceil(p / 10);
+				add(asia, n + ' pak Surimisticks');
+
+				n = Math.ceil(p / 200);
+				add(asia, n + ' stk Salat');
+
+				n = Math.ceil(p / 11);
+				add(asia, n + ' stk Avocado');
+
+				n = Math.ceil(p / 8);
+				add(asia, n + ' stk Möhren');
+
+				n = Math.ceil(p / 12);
+				add(asia, n + ' stk Gurke');
+
+				n = Math.ceil(p / 20);
+				add(asia, n + ' bnd Schnittlauch');
+
+				n = Math.ceil(p / 50);
+				add(asia, n + ' stk Zitrone');
+
+				n = Math.ceil(p / 100);
+				add(asia, n + ' fla Sojasoße');
+
+				n = Math.ceil(p / 100);
+				add(asia, n + ' fla Essigwein');
+
+				n = Math.ceil(p / 100);
+				add(asia, n + ' fla Mirin');
+				
+
+				// FISH
+
+				n = Math.ceil(p * 70);
+				add(fish, n + 'g Fisch');
+
+				// GROCERY
+
+				n = Math.ceil(p / 17);
+				add(grocery, n + ' dos Thunfisch');
+
+				n = Math.ceil(p / 1.7);
+				add(grocery, n + ' stk Eier');
+
+				n = Math.ceil(p / 60);
+				add(grocery, n + ' pak Frischkäse');
+
+				n = Math.ceil(p / 100);
+				add(grocery, n + ' fla Knoblauchsalz');
+
+				n = Math.ceil(p / 100);
+				add(grocery, n + ' pak Kräutersalz');
+
+				add(grocery, '-----------------');
+				add(grocery, 'Öl');
+				add(grocery, 'Salz');
+				add(grocery, 'Zucker');
+				add(grocery, 'Frischhalteföle');
+				add(grocery, 'Backpapier');
+			}
+
+			// function getWeatherFactor() {
+				/* returns a modificator between 0 and 1 depending on the weather situation.
+				 * Source for that prediction may be forecast or a dropdown menu.
+				 * A low value (close to 0) means great heat, less food consumption.
+				 * A big value (close to 2) means great cold, more food consumption.
+				 * 
+				 * CAUTION: the expected food consumption will be directly multiplied with
+				 * with factor; meaning a factor of 0 means 0 expected food consumption!
+				 * 
+				 * Currently, this function translates weather forecast temperatures to
+				 * an estimated factor.
+				 */
+
+				 // let forecastTemperature = Number.parseInt(document.getElementById('input-weather').value);
+
+				 // if 	(forecastTemperature < -10) return 2.2;
+				 // else if(forecastTemperature <   0) return 2.0;
+				 // else if(forecastTemperature <   8) return 1.8;
+				 // else if(forecastTemperature <  16) return 1.3;
+				 // else if(forecastTemperature <  24) return 1.0;
+				 // else if(forecastTemperature <  31) return 0.8;
+				 // else if(forecastTemperature >  37) return 0.5;
+
+				 // alert('Logic error in getWeatherFactor, causing no factor to be returned.');				 
+			// }
+
+			function add(list, item) {
+				list.append(item + "\n");
+			}
+		</script>
+	</body>
+</html>
