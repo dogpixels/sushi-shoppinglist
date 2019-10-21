@@ -1,5 +1,7 @@
 # Sushi Shopping List
-A handy graphical interface that will determine the required incredients to make sushi at home. Currently only in German. Data is based on experience and tailored to a specific group of friends' habits. 
+A handy graphical interface that will determine the required incredients to make sushi at home. Currently only in German. Data is based on experience and tailored to a specific group of friends' habits.
+
+![Screenshot](https://dogpixels.github.io/sushi-shoppinglist/doc/screenshot.png)
 
 # Installation
 Download or clone this repository and deploy the single `sushi.html` file to a web server of your choice.
